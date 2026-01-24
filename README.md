@@ -9,7 +9,17 @@
 > 什么，你继续问我为什么不挑选Qwen2.5-Coder-1.5B-Instruct进行微调？<br>
 - ~~我如果在这阿里进行过代码训练上的模型进行微调，哪能看得出我微调的效果？~~<br>
 ~~好吧，其实是我问千问有什么参数量小的模型，它推荐了这个，然后我一时间忘记继续去搜集信息，直接开搞惹，结果训练到一半才在ModelScope上刷到Qwen2.5-Coder-1.5B-Instruct。PWP~~<br>
- 第一遍实在太差了，反正还要再训练一遍，还是弄Qwen2.5-Coder-1.5B-Instruct吧
+ ~~第一遍实在太差了，反正还要再训练一遍，还是弄Qwen2.5-Coder-1.5B-Instruct吧~~
+ 这个也太差劲了，上7B吧PwP<br>
+ *不对，为什么疯狂报mismatch啊啊？从1.5B->7B我啥都没改啊？<br>
+ *疯狂debug,疯狂研究格式*<br>
+ 算了，格式弄成所谓的标准型吧<br>
+ 7B根本跑不动啊，只能3B
+
+> 友情提示
+> UserWarning: Model has `tie_word_embeddings=True` and a tied layer is part of the adapter, but `ensure_weight_tying` is not set to True. This can lead to complications, for example when merging the adapter or converting your model to formats other than safetensors. Check the discussion here: https://github.com/huggingface/peft/issues/2777<br>
+> *适配器和权重绑定的冲突，本质是PEFT 的 “独立层默认认知”与模型的 “权重绑定实际情况”的偏差，仅在合并适配器权重时暴露，ensure_weight_tying=True就是用来修正这个偏差的开关。而你现在看到的警告，就是 PEFT 在提醒你：“我现在按默认认知处理适配器，合并时可能会出偏差，记得打开纠偏开关～”。*
+
 ## 目录
 
 - 项目概述

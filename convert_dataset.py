@@ -27,14 +27,12 @@ def convert (example) :
             end_index = human_input.find(end_marker)
             if start_index == -1 :
                 return {
-                    "prompt":"",
-                    "completion":"",
+                    "text":"",
                     "valid":False
                 }
             if end_index == -1 :
                 return {
-                    "prompt":"",
-                    "completion":"",
+                    "text":"",
                     "valid":False
                     }
                 
@@ -52,8 +50,8 @@ def convert (example) :
         start_index = gpt_output.find(start_marker)
         end_index = gpt_output.find(end_marker)
         if start_index == -1 :
-            return {"prompt":"",
-                    "completion":"",
+            return {"text":"",
+                    
                     "valid":False
                     }
         if end_index == -1 :
@@ -61,17 +59,13 @@ def convert (example) :
 
         completion += gpt_output[start_index:end_index].strip().replace('```', '')
         
-
-#return {"Instruction":alpaca_text,"valid":True}
-
-#        alpaca_text = f"### Instruction:\n{instruction}\n### Input:\n{input_text}\n### Output:\n{output}"
+        # Format as ChatML
+        text = f"<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n{completion}<|im_end|>"
         
         return {
-             "prompt": prompt,
-             "completion": completion,
+             "text": text,
             "valid": True
          }
-#        return {"text": alpaca_text,"valid":True}
     
     except (KeyError,Exception) as e :
         #except (KeyError, Exception) as e：捕获两种异常类型：
@@ -79,8 +73,7 @@ def convert (example) :
 # Exception：所有其他异常的基类（包括AttributeError、ValueError等）。
 # 将异常对象赋值给变量e（可选，用于调试，但代码中未使用）。
         return {
-            "prompt": "",
-            "completion": "",
+            "text": "",
             "valid": False
         }
 

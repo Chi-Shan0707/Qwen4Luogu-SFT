@@ -11,10 +11,11 @@ from trl import SFTTrainer, SFTConfig
 from modelscope.hub.snapshot_download import snapshot_download
 
 # ========== 模型配置 ==========
-MS_MODEL_ID = "qwen/Qwen2.5-Coder-1.5B-Instruct"
-LOCAL_MODEL_DIR = "./models/Qwen2.5-Coder-1.5B-Instruct"
+MS_MODEL_ID = "qwen/Qwen2.5-Coder-3B-Instruct-GPTQ-Int8"
+LOCAL_MODEL_DIR = "./models/Qwen2.5-Coder-3B-Instruct-GPTQ-Int8"
 OUTPUT_DIR = "./output/luoguqwencoder-lora"
 
+#  Qwen2.5-Coder-7B-Instruct
 # ========== 下载模型 ==========
 if not os.path.exists(LOCAL_MODEL_DIR):
     print(f"从ModelScope下载模型 {MS_MODEL_ID} 到 {LOCAL_MODEL_DIR}...")
@@ -54,12 +55,13 @@ model.config.use_cache = False
 
 # ========== LoRA 配置 ==========
 lora_config = LoraConfig(
-    r=16,
-    lora_alpha=32,
-    lora_dropout=0.1,
-    bias="none",
+    r=8, # 调参是一个矩阵， 这是矩阵的维度，原16
+    lora_alpha=16, #适配器影响强度通常是r的两倍
+    lora_dropout=0.05,# 随机丢弃适配器权重 原0.1
+    bias="none", 
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    modules_to_save=["embed_tokens", "lm_head"],  # 可选，少量额外参数，提升指令对齐
 )
 model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
@@ -68,8 +70,6 @@ model.print_trainable_parameters()
 # dataset = load_dataset("Misaka114514/luogu_dpo")
 dataset = load_from_disk("./local_luogu_dataset")
 
-def format_piece(sample):
-    return sample["prompt"] + sample["completion"]
 
 # ========== SFTConfig：仅包含训练参数（TRL 0.27+ 规范）==========
 sft_config = SFTConfig(
@@ -81,7 +81,7 @@ sft_config = SFTConfig(
     num_train_epochs=2, # 完整遍历数据集2次
     learning_rate=1e-5, # 学习率，即参数更新的步长
     weight_decay=0.01,
-    lr_scheduler_type="cosine",
+    lr_scheduler_type="cosine", #: 学习率调度器类型。设置为 "cosine"，表示使用余弦退火调度器：学习率从初始值逐渐下降到 0，形成余弦曲线。这有助于平稳收敛，避免后期震荡。
     warmup_steps=100,
     fp16=False,
     bf16=True,
@@ -101,7 +101,7 @@ trainer = SFTTrainer(
     args=sft_config,
     train_dataset=dataset["train"],
     processing_class=tokenizer,
-    # formatting_func=format_piece,
+
 )
 
 # ========== 训练 ==========
@@ -111,4 +111,5 @@ trainer.train()
 # ========== 保存 ==========
 trainer.model.save_pretrained(OUTPUT_DIR)
 tokenizer.save_pretrained(OUTPUT_DIR)
+
 print(f"训练完成，LoRA权重已保存到：{OUTPUT_DIR}")
