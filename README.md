@@ -17,7 +17,8 @@
  7B根本跑不动啊，只能3B<br>
  ~~啊训练完了，参数根本上传不动啊？啊，huggingface也上传不动啊PwP~~
 
-> 友情提示<br>
+> 已删去相关语句,以下可忽略<br>
+> ~~友情提示<br>~~
 > UserWarning: Model has `tie_word_embeddings=True` and a tied layer is part of the adapter, but `ensure_weight_tying` is not set to True. This can lead to complications, for example when merging the adapter or converting your model to formats other than safetensors. Check the discussion here: https://github.com/huggingface/peft/issues/2777<br>
 > *适配器和权重绑定的冲突，本质是PEFT 的 “独立层默认认知”与模型的 “权重绑定实际情况”的偏差，仅在合并适配器权重时暴露，ensure_weight_tying=True就是用来修正这个偏差的开关。而你现在看到的警告，就是 PEFT 在提醒你：“我现在按默认认知处理适配器，合并时可能会出偏差，记得打开纠偏开关～”。*
 

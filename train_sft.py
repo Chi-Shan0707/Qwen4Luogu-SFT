@@ -15,7 +15,7 @@ MS_MODEL_ID = "qwen/Qwen2.5-Coder-3B-Instruct"
 LOCAL_MODEL_DIR = "./models/Qwen2.5-Coder-3B-Instruct"
 OUTPUT_DIR = "./output/luoguqwencoder-lora"
 
-#  Qwen2.5-Coder-7B-Instruct
+#  Qwen2.5-Coder-3B-Instruct
 # ========== 下载模型 ==========
 if not os.path.exists(LOCAL_MODEL_DIR):
     print(f"从ModelScope下载模型 {MS_MODEL_ID} 到 {LOCAL_MODEL_DIR}...")
@@ -55,13 +55,29 @@ model.config.use_cache = False
 
 # ========== LoRA 配置 ==========
 lora_config = LoraConfig(
-    r=8, # 调参是一个矩阵， 这是矩阵的维度，原16
+    r=64, # 调参是一个矩阵， 这是矩阵的维度，原16
     lora_alpha=16, #适配器影响强度通常是r的两倍
     lora_dropout=0.05,# 随机丢弃适配器权重 原0.1
     bias="none", 
     task_type="CAUSAL_LM",
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-    modules_to_save=["embed_tokens", "lm_head"],  # 可选，少量额外参数，提升指令对齐
+    
+  
+    # modules_to_save=["embed_tokens", "lm_head"],  # 可选，少量额外参数，提升指令对齐
+    # 这是一个巨大的陷阱。
+
+    #     问题：embed_tokens 和 lm_head 是词表映射层。Qwen 的词表很大（约 152k）。当你把它们加入 modules_to_save，意味着你实际上在训练数亿个参数（152000 * hidden_size），这完全违背了 LoRA 的初衷。
+
+    #     后果：
+
+    #     显存爆炸/训练极慢：原本 LoRA 只需要训练几兆参数，现在变成了几百兆甚至更多。
+
+    #     灾难性遗忘：在一个小的竞赛数据集（如洛谷）上全量更新词表头，会破坏模型原本通用的语言能力，导致模型变得“傻”或者只会复读训练集。
+
+    #     过拟合：参数量过大，数据量不够。
+
+    #     建议：直接删除这一行。对于代码微调，通常只需要训练 Attention 和 MLP 层的 LoRA 权重即可。
+    
 )
 model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
@@ -79,7 +95,9 @@ sft_config = SFTConfig(
     # batch， 一次处理的样本
     # batchsize 16*1=16个
     num_train_epochs=2, # 完整遍历数据集2次
-    learning_rate=1e-5, # 学习率，即参数更新的步长
+    learning_rate=2e-4, # 学习率，即参数更新的步长
+    # 分析：1e-5 对于 LoRA 来说偏保守（全量微调才用这么小）。LoRA 通常可以容忍更大的学习率。
+    # 建议：尝试 2e-4 或 3e-4。
     weight_decay=0.01,
     lr_scheduler_type="cosine", #: 学习率调度器类型。设置为 "cosine"，表示使用余弦退火调度器：学习率从初始值逐渐下降到 0，形成余弦曲线。这有助于平稳收敛，避免后期震荡。
     warmup_steps=100,
@@ -92,7 +110,11 @@ sft_config = SFTConfig(
     gradient_checkpointing=True, # 是否启用梯度检查点。设置为 True，通过重计算中间激活节省显存（以时间换空间），适合大模型训练。
     remove_unused_columns=False,
     dataloader_pin_memory=False,
-    neftune_noise_alpha=5.0,# NEFTune 噪声参数。设置为 5.0，用于在训练中添加噪声以改善生成质量（减少生成重复）。值通常在 0-10 之间，0 表示禁用。
+    neftune_noise_alpha=0.5,
+# NEFTune 噪声参数。若设置为 5.0，用于在训练中添加噪声以改善生成质量（减少生成重复）。值通常在 0-10 之间，0 表示禁用。
+# 分析：NEFTune 通过在 Embedding 层加噪声来避免过拟合。但是 5.0 是一个非常激进的值（通常用 5.0 是为了增强对话的多样性）。对于编程和数学这种要求精确逻辑的任务，过大的噪声会干扰模型学习精确的语法和逻辑路径。
+
+# 建议：去掉这一行，或者将其降低到 1.0 甚至 0。
 )
 
 # ========== SFTTrainer：只负责训练，不做格式化（TRL 0.27+ 规范）==========
