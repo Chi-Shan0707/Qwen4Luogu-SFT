@@ -1,6 +1,6 @@
-# LuoguQwen — LoRA 微调示例
+# LuoguQwen — SFT-LoRA 微调示例
 
-本仓库提供基于 Qwen 指令模型的 LoRA 微调示例和相关工具，包含训练脚本、评估脚本与示例数据。下文为项目说明、快速使用方法、基模型获取、推理方法、训练参数、数据来源及许可说明。
+本仓库提供基于 Qwen 指令模型的 SFT-LoRA 微调示例和相关工具，包含训练脚本、评估脚本与示例数据。下文为项目说明、快速使用方法、基模型获取、推理方法、训练参数、数据来源及许可说明。
 
 
 > 什么，你问我为什么要挑选Qwen2.5-1.5B-Instruct进行微调？<br>
@@ -20,7 +20,9 @@
 > 已删去相关语句,以下可忽略<br>
 > ~~友情提示<br>~~
 > UserWarning: Model has `tie_word_embeddings=True` and a tied layer is part of the adapter, but `ensure_weight_tying` is not set to True. This can lead to complications, for example when merging the adapter or converting your model to formats other than safetensors. Check the discussion here: https://github.com/huggingface/peft/issues/2777<br>
-> *适配器和权重绑定的冲突，本质是PEFT 的 “独立层默认认知”与模型的 “权重绑定实际情况”的偏差，仅在合并适配器权重时暴露，ensure_weight_tying=True就是用来修正这个偏差的开关。而你现在看到的警告，就是 PEFT 在提醒你：“我现在按默认认知处理适配器，合并时可能会出偏差，记得打开纠偏开关～”。*
+> *适配器和权重绑定的冲突，本质是PEFT 的 “独立层默认认知”与模型的 “权重绑定实际情况”的偏差，仅在合并适配器权重时暴露，ensure_weight_tying=True就是用来修正这个偏差的开关。而你现在看到的警告，就是 PEFT 在提醒你：“我现在按默认认知处理适配器，合并时可能会出偏差，记得打开纠偏开关～”。*<br>
+
+- 什么？竟然有人用13个参数就微调了Qwen2.5的7B模型做数学题？！一个二维码的大小！数学和编程是相通的，不行，我要去复现！[仓库导航](https://github.com/Chi-Shan0707/Qwen4Luogu-RL)
 
 ## 目录
 
