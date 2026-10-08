@@ -174,12 +174,6 @@ dataset = load_dataset("Misaka114514/luogu_dpo")
 - 基模型（`qwen/Qwen2.5-1.5B-Instruct`）为第三方提供，请遵守其原始许可证并自行获取基模型，本仓库不承担基模型的分发许可。
 - 推荐公开的仓库内容：
   - `train_sft.py`、`evaluate_model.py`、`requirements.txt`、`dataset_example/`（若可分享）及 LoRA 权重文件夹 `output/luoguqwen-lora/`。
-  - 不建议在仓库中托管完整基模型 `models/`，体积和许可均不适宜直接托管。
-
-关于将 LoRA 权重上传至 GitHub 的说明：
-
-- LoRA 权重通常为几十 MB 到几百 MB，可直接提交或使用 Git LFS 管理。若使用 Git LFS，请在 README 中注明并确保协作者安装 LFS。
-- 本仓库 `.gitignore` 建议排除基模型目录 `models/` 与大型临时 checkpoint，同时允许 `output/luoguqwen-lora/` 被发布。
 
 ---
 
